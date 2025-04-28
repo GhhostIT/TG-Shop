@@ -1,152 +1,3 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Premium Work Shop</title>
-  <style>
-    :root {
-      --bg-color: #121212;
-      --text-color: #ffffff;
-      --card-bg: #1f1f1f;
-      --accent-color: #007aff;
-    }
-    body {
-      font-family: 'Arial', sans-serif;
-      margin: 0;
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      padding: 20px;
-    }
-    header {
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    #startScreen, #categories, #products, #cart {
-      width: 100%;
-      max-width: 500px;
-    }
-    #startScreen {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    #startScreen img {
-      width: 150px;
-      margin-bottom: 20px;
-      border-radius: 20px;
-    }
-    .button {
-      background: var(--accent-color);
-      color: white;
-      padding: 15px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 10px;
-      font-size: 18px;
-      width: 100%;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .button:hover {
-      background: #005bb5;
-    }
-    .categories, .products {
-      padding: 20px 0;
-    }
-    .category, .product {
-      background: var(--card-bg);
-      border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 15px;
-      transition: transform 0.3s, box-shadow 0.3s;
-      cursor: pointer;
-    }
-    .category:hover, .product:hover {
-      transform: scale(1.02);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.7);
-    }
-    .product-image {
-      width: 100%;
-      height: 150px;
-      background: #333;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #666;
-      font-size: 14px;
-    }
-    .counter {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .counter button {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      font-size: 18px;
-    }
-    .cart {
-      background: var(--card-bg);
-      border-radius: 10px;
-      padding: 15px;
-      margin-top: 20px;
-    }
-    ul {
-      padding-left: 0;
-      list-style: none;
-    }
-    li {
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .home-btn {
-      margin-top: 10px;
-      background: var(--accent-color);
-      color: white;
-      padding: 10px;
-      border: none;
-      border-radius: 10px;
-      width: 100%;
-      cursor: pointer;
-      font-size: 16px;
-    }
-  </style>
-</head>
-<body>
-
-<header>Premium Work Shop</header>
-
-<div id="startScreen">
-  <img src="logo.png" alt="Logo">
-  <button class="button" onclick="goToShop()">Shop</button>
-  <button class="button" onclick="goToChannel()">TG Channel</button>
-</div>
-
-<div class="categories" id="categories" style="display:none;"></div>
-<div class="products" id="products" style="display:none;"></div>
-
-<div class="cart" id="cart" style="display:none;">
-  <h2>Корзина</h2>
-  <ul id="cartItems"></ul>
-  <p id="cartTotal">Итого: 0 $</p>
-  <button onclick="sendOrder()">Оформить заказ</button>
-  <button class="home-btn" onclick="goHome()">Home</button>
-</div>
-
 <script>
 if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
   Telegram.WebApp.ready();
@@ -275,17 +126,23 @@ function renderCart() {
   document.getElementById('cartTotal').innerText = `Итого: ${total} $`;
 }
 
+// ✍️ Новая обработка кнопки "Оформить заказ" — добавил fetch к серверу
 function sendOrder() {
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const data = { cart, total };
-  if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-    Telegram.WebApp.sendData(JSON.stringify(data));
-  } else {
+
+  fetch('/order', {   // Отправка заказа на сервер
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  .then(response => response.json())
+  .then(result => {
+    alert(result.message || 'Заказ оформлен! Ожидайте счёт.');
+  })
+  .catch(error => {
+    console.error('Ошибка при оформлении заказа:', error);
     alert('Ошибка отправки заказа.');
-    console.log(data);
-  }
+  });
 }
 </script>
-
-</body>
-</html>
