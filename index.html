@@ -1,135 +1,280 @@
-from aiogram import Bot, Dispatcher, types
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputFile
-from aiogram.utils import executor
-import asyncio
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium Work Shop</title>
+  <style>
+    :root {
+      --bg-color: #121212;
+      --text-color: #ffffff;
+      --card-bg: #1f1f1f;
+      --accent-color: #007aff;
+    }
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    header {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    #startScreen, #categories, #products, #cart, #channelScreen {
+      width: 100%;
+      max-width: 500px;
+    }
+    #startScreen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #startScreen img {
+      width: 150px;
+      margin-bottom: 20px;
+      border-radius: 20px;
+      object-fit: cover;
+    }
+    .button {
+      background: var(--accent-color);
+      color: white;
+      padding: 15px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      width: 100%;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .button:hover {
+      background: #005bb5;
+    }
+    .categories, .products {
+      padding: 20px 0;
+    }
+    .category, .product {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+    }
+    .category:hover, .product:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.7);
+    }
+    .product-image {
+      width: 100%;
+      height: 150px;
+      background: #333;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      font-size: 14px;
+    }
+    .counter {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .counter button {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-size: 18px;
+    }
+    .cart {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 20px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    #backBtn, #homeBtn {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
 
-TOKEN = 'YOUR_BOT_TOKEN'
+<header>Premium Work Shop</header>
 
-bot = Bot(token=TOKEN)
-dp = Dispatcher(bot)
+<div id="startScreen">
+  <img src="logo.png" alt="Logo">
+  <button class="button" onclick="goToShop()">Shop</button>
+  <button class="button" onclick="goToChannel()">TG Channel</button>
+</div>
 
-# Товары по категориям
-categories = {
-    "VPN": ["NordVPN - 5$", "SurfsharkVPN - 3$"],
-    "Гайды": ["Заработок в телеграм - 10$", "Арбитраж трафика - 15$"],
-    "Расходники": ["Логи США - 2$", "Логи РФ - 1$"]
+<div class="categories" id="categories" style="display:none;"></div>
+<div class="products" id="products" style="display:none;"></div>
+<div class="cart" id="cart" style="display:none;">
+  <h2>Корзина</h2>
+  <ul id="cartItems"></ul>
+  <p id="cartTotal">Итого: 0 $</p>
+  <button onclick="sendOrder()">Оформить заказ</button>
+</div>
+<div id="channelScreen" style="display:none; text-align:center;">
+  <h2>Наш Telegram канал</h2>
+  <a href="https://t.me/+oYfxuzp0MERkNjg6" target="_blank" class="button">Перейти в канал</a>
+  <button id="homeBtn" class="button" onclick="goHome()">Главная</button>
+</div>
+
+<script>
+if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+  Telegram.WebApp.ready();
 }
 
-# Корзина для пользователей
-user_carts = {}
+const categories = [
+  { id: 'vpn', title: 'ВПН' },
+  { id: 'manuals', title: 'Мануалы' },
+  { id: 'supplies', title: 'Расходники' }
+];
 
-# Главное меню
-def main_menu():
-    keyboard = InlineKeyboardMarkup(row_width=1)
-    keyboard.add(
-        InlineKeyboardButton("Shop", callback_data="shop"),
-        InlineKeyboardButton("TG Channel", url="https://t.me/+oYfxuzp0MERkNjg6")
-    )
-    return keyboard
+const products = {
+  vpn: [
+    { id: 1, name: "VPN Pro", price: 2, description: "Лучший VPN", image: "" },
+    { id: 2, name: "VPN Ultra", price: 3, description: "Ультра скорость", image: "" },
+    { id: 3, name: "VPN Basic", price: 1, description: "Базовый VPN", image: "" },
+    { id: 4, name: "VPN Max", price: 5, description: "Максимальная защита", image: "" }
+  ],
+  manuals: [
+    { id: 5, name: "Гайд №1", price: 1, description: "Полный гайд", image: "" },
+    { id: 6, name: "Гайд №2", price: 2, description: "Пошаговый гайд", image: "" },
+    { id: 7, name: "Гайд №3", price: 2, description: "Экспертный гайд", image: "" },
+    { id: 8, name: "Гайд №4", price: 3, description: "Бонусный гайд", image: "" }
+  ],
+  supplies: [
+    { id: 9, name: "Расходник 1", price: 1, description: "Расходный материал 1", image: "" },
+    { id: 10, name: "Расходник 2", price: 2, description: "Расходный материал 2", image: "" },
+    { id: 11, name: "Расходник 3", price: 2, description: "Расходный материал 3", image: "" },
+    { id: 12, name: "Расходник 4", price: 3, description: "Расходный материал 4", image: "" }
+  ]
+};
 
-# Кнопка домой
-def home_button():
-    keyboard = InlineKeyboardMarkup()
-    keyboard.add(InlineKeyboardButton("Home", callback_data="home"))
-    return keyboard
+const cart = [];
 
-# Вывод категорий
-def categories_menu():
-    keyboard = InlineKeyboardMarkup(row_width=1)
-    for category in categories.keys():
-        keyboard.add(InlineKeyboardButton(category, callback_data=f"category_{category}"))
-    keyboard.add(InlineKeyboardButton("Home", callback_data="home"))
-    return keyboard
+function goToShop() {
+  hideAll();
+  document.getElementById('categories').style.display = 'block';
+  document.getElementById('cart').style.display = 'block';
+  renderCategories();
+}
 
-# Товары внутри категории
-def products_menu(category_name):
-    keyboard = InlineKeyboardMarkup(row_width=1)
-    for product in categories.get(category_name, []):
-        keyboard.add(InlineKeyboardButton(product, callback_data=f"add_{product}"))
-    keyboard.add(InlineKeyboardButton("Корзина", callback_data="cart"))
-    keyboard.add(InlineKeyboardButton("Home", callback_data="home"))
-    return keyboard
+function goToChannel() {
+  hideAll();
+  document.getElementById('channelScreen').style.display = 'block';
+}
 
-# Корзина
-def cart_menu():
-    keyboard = InlineKeyboardMarkup(row_width=1)
-    keyboard.add(
-        InlineKeyboardButton("Оформить заказ", callback_data="checkout"),
-        InlineKeyboardButton("Очистить корзину", callback_data="clear_cart"),
-        InlineKeyboardButton("Home", callback_data="home")
-    )
-    return keyboard
+function goHome() {
+  hideAll();
+  document.getElementById('startScreen').style.display = 'flex';
+}
 
-@dp.message_handler(commands=['start'])
-async def start(message: types.Message):
-    photo = InputFile('logo.png')  # сюда вставляешь название файла с логотипом
-    await message.answer_photo(photo=photo, caption="**Premium Work Shop**", parse_mode="Markdown", reply_markup=main_menu())
+function hideAll() {
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('categories').style.display = 'none';
+  document.getElementById('products').style.display = 'none';
+  document.getElementById('cart').style.display = 'none';
+  document.getElementById('channelScreen').style.display = 'none';
+}
 
-@dp.callback_query_handler(lambda c: True)
-async def process_callback(callback_query: types.CallbackQuery):
-    user_id = callback_query.from_user.id
+function renderCategories() {
+  const categoriesDiv = document.getElementById('categories');
+  categoriesDiv.innerHTML = '';
+  categories.forEach(cat => {
+    const div = document.createElement('div');
+    div.className = 'category';
+    div.innerHTML = `<div class="category-title">${cat.title}</div>`;
+    div.onclick = () => showProducts(cat.id);
+    categoriesDiv.appendChild(div);
+  });
+}
 
-    if callback_query.data == "home":
-        await bot.edit_message_caption(
-            chat_id=callback_query.message.chat.id,
-            message_id=callback_query.message.message_id,
-            caption="**Premium Work Shop**",
-            parse_mode="Markdown",
-            reply_markup=main_menu()
-        )
+function showProducts(categoryId) {
+  document.getElementById('categories').style.display = 'none';
+  const productsDiv = document.getElementById('products');
+  productsDiv.innerHTML = `<button id="backBtn" class="button" onclick="backToCategories()">Назад</button>`;
+  products[categoryId].forEach(prod => {
+    const div = document.createElement('div');
+    div.className = 'product';
+    div.innerHTML = `
+      <div class="product-image">Заглушка</div>
+      <div class="product-title">${prod.name}</div>
+      <p>${prod.description}</p>
+      <p>Цена: ${prod.price} $</p>
+      <div class="counter">
+        <button onclick="changeQuantity(${prod.id}, -1)">-</button>
+        <span id="count-${prod.id}">0</span>
+        <button onclick="changeQuantity(${prod.id}, 1)">+</button>
+      </div>
+    `;
+    productsDiv.appendChild(div);
+  });
+  productsDiv.style.display = 'block';
+}
 
-    elif callback_query.data == "shop":
-        await bot.edit_message_caption(
-            chat_id=callback_query.message.chat.id,
-            message_id=callback_query.message.message_id,
-            caption="Выберите категорию:",
-            parse_mode="Markdown",
-            reply_markup=categories_menu()
-        )
+function backToCategories() {
+  document.getElementById('products').style.display = 'none';
+  document.getElementById('categories').style.display = 'block';
+}
 
-    elif callback_query.data.startswith("category_"):
-        category = callback_query.data.split("_")[1]
-        await bot.edit_message_caption(
-            chat_id=callback_query.message.chat.id,
-            message_id=callback_query.message.message_id,
-            caption=f"Товары в категории {category}:",
-            parse_mode="Markdown",
-            reply_markup=products_menu(category)
-        )
+function changeQuantity(productId, delta) {
+  const product = Object.values(products).flat().find(p => p.id === productId);
+  const item = cart.find(i => i.id === productId);
+  if (item) {
+    item.quantity += delta;
+    if (item.quantity <= 0) {
+      const index = cart.indexOf(item);
+      cart.splice(index, 1);
+    }
+  } else if (delta > 0) {
+    cart.push({ ...product, quantity: 1 });
+  }
+  document.getElementById(`count-${productId}`).innerText = cart.find(i => i.id === productId)?.quantity || 0;
+  renderCart();
+}
 
-    elif callback_query.data.startswith("add_"):
-        product = callback_query.data.split("_", 1)[1]
-        if user_id not in user_carts:
-            user_carts[user_id] = []
-        user_carts[user_id].append(product)
-        await bot.answer_callback_query(callback_query.id, text=f"Добавлено в корзину: {product}")
+function renderCart() {
+  const cartUl = document.getElementById('cartItems');
+  cartUl.innerHTML = '';
+  let total = 0;
+  cart.forEach(item => {
+    total += item.price * item.quantity;
+    const li = document.createElement('li');
+    li.textContent = `${item.name} x ${item.quantity}`;
+    cartUl.appendChild(li);
+  });
+  document.getElementById('cartTotal').innerText = `Итого: ${total} $`;
+}
 
-    elif callback_query.data == "cart":
-        cart = user_carts.get(user_id, [])
-        if not cart:
-            await bot.answer_callback_query(callback_query.id, text="Корзина пуста!")
-        else:
-            cart_text = "\n".join(cart)
-            await bot.edit_message_caption(
-                chat_id=callback_query.message.chat.id,
-                message_id=callback_query.message.message_id,
-                caption=f"Ваша корзина:\n\n{cart_text}",
-                parse_mode="Markdown",
-                reply_markup=cart_menu()
-            )
+function sendOrder() {
+  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const data = { cart, total };
+  if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+    Telegram.WebApp.sendData(JSON.stringify(data));
+  } else {
+    alert('Ошибка отправки заказа.');
+    console.log(data);
+  }
+}
+</script>
 
-    elif callback_query.data == "clear_cart":
-        user_carts[user_id] = []
-        await bot.answer_callback_query(callback_query.id, text="Корзина очищена.")
-
-    elif callback_query.data == "checkout":
-        cart = user_carts.get(user_id, [])
-        if not cart:
-            await bot.answer_callback_query(callback_query.id, text="Корзина пуста!")
-            return
-        total = sum([int(item.split("-")[-1].replace("$", "").strip()) for item in cart])
-        await bot.send_message(user_id, f"Ваш заказ на сумму {total}$.\nПереходите к оплате через CryptoBot.")
-        user_carts[user_id] = []  # очищаем корзину после отправки чека
-
-if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+</body>
+</html>
