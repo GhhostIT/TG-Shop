@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Premium Work Shop</title>
   <style>
     body {
@@ -54,9 +54,7 @@
   </div>
 
   <div id="categories" style="display:none;"></div>
-
   <div id="products" style="display:none;"></div>
-
   <div id="cart" style="display:none;">
     <h2>Корзина</h2>
     <ul id="cartItems"></ul>
@@ -65,48 +63,49 @@
     <button class="button" onclick="goHome()">🏠 На главную</button>
   </div>
 
-  <!-- Твой скрипт (исправленный чуть-чуть) -->
   <script>
-    if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-      Telegram.WebApp.ready();
-    }
-    
+    window.onload = () => {
+      if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+        Telegram.WebApp.ready();
+      }
+    };
+
     const categories = [
       { id: 'vpn', title: 'ВПН' },
       { id: 'manuals', title: 'Мануалы' },
       { id: 'supplies', title: 'Расходники' }
     ];
-    
+
     const products = {
       vpn: [
-        { id: 1, name: "VPN Pro", price: 2, description: "Лучший VPN", image: "" },
-        { id: 2, name: "VPN Ultra", price: 3, description: "Ультра скорость", image: "" },
-        { id: 3, name: "VPN Basic", price: 1, description: "Базовый VPN", image: "" },
-        { id: 4, name: "VPN Max", price: 5, description: "Максимальная защита", image: "" }
+        { id: 1, name: "VPN Pro", price: 2, description: "Лучший VPN" },
+        { id: 2, name: "VPN Ultra", price: 3, description: "Ультра скорость" },
+        { id: 3, name: "VPN Basic", price: 1, description: "Базовый VPN" },
+        { id: 4, name: "VPN Max", price: 5, description: "Максимальная защита" }
       ],
       manuals: [
-        { id: 5, name: "Гайд №1", price: 1, description: "Полный гайд", image: "" },
-        { id: 6, name: "Гайд №2", price: 2, description: "Пошаговый гайд", image: "" },
-        { id: 7, name: "Гайд №3", price: 2, description: "Экспертный гайд", image: "" },
-        { id: 8, name: "Гайд №4", price: 3, description: "Бонусный гайд", image: "" }
+        { id: 5, name: "Гайд №1", price: 1, description: "Полный гайд" },
+        { id: 6, name: "Гайд №2", price: 2, description: "Пошаговый гайд" },
+        { id: 7, name: "Гайд №3", price: 2, description: "Экспертный гайд" },
+        { id: 8, name: "Гайд №4", price: 3, description: "Бонусный гайд" }
       ],
       supplies: [
-        { id: 9, name: "Расходник 1", price: 1, description: "Расходный материал 1", image: "" },
-        { id: 10, name: "Расходник 2", price: 2, description: "Расходный материал 2", image: "" },
-        { id: 11, name: "Расходник 3", price: 2, description: "Расходный материал 3", image: "" },
-        { id: 12, name: "Расходник 4", price: 3, description: "Расходный материал 4", image: "" }
+        { id: 9, name: "Расходник 1", price: 1, description: "Расходный материал 1" },
+        { id: 10, name: "Расходник 2", price: 2, description: "Расходный материал 2" },
+        { id: 11, name: "Расходник 3", price: 2, description: "Расходный материал 3" },
+        { id: 12, name: "Расходник 4", price: 3, description: "Расходный материал 4" }
       ]
     };
-    
+
     const cart = [];
-    
+
     function goHome() {
       document.getElementById('startScreen').style.display = 'flex';
       document.getElementById('categories').style.display = 'none';
       document.getElementById('products').style.display = 'none';
       document.getElementById('cart').style.display = 'none';
     }
-    
+
     function goToShop() {
       document.getElementById('startScreen').style.display = 'none';
       document.getElementById('categories').style.display = 'block';
@@ -114,11 +113,11 @@
       document.getElementById('cart').style.display = 'block';
       renderCategories();
     }
-    
+
     function goToChannel() {
       window.open('https://t.me/+oYfxuzp0MERkNjg6', '_blank');
     }
-    
+
     function renderCategories() {
       const categoriesDiv = document.getElementById('categories');
       categoriesDiv.innerHTML = '';
@@ -130,7 +129,7 @@
         categoriesDiv.appendChild(div);
       });
     }
-    
+
     function showProducts(categoryId) {
       document.getElementById('categories').style.display = 'none';
       const productsDiv = document.getElementById('products');
@@ -153,12 +152,13 @@
       });
       productsDiv.style.display = 'block';
     }
-    
+
     function backToCategories() {
       document.getElementById('products').style.display = 'none';
       document.getElementById('categories').style.display = 'block';
+      renderCart();
     }
-    
+
     function changeQuantity(productId, delta) {
       const product = Object.values(products).flat().find(p => p.id === productId);
       const item = cart.find(i => i.id === productId);
@@ -177,7 +177,7 @@
       }
       renderCart();
     }
-    
+
     function renderCart() {
       const cartUl = document.getElementById('cartItems');
       cartUl.innerHTML = '';
@@ -193,8 +193,13 @@
       });
       document.getElementById('cartTotal').innerText = `Итого: ${total} $`;
     }
-    
+
     function sendOrder() {
+      if (cart.length === 0) {
+        alert("Корзина пуста!");
+        return;
+      }
+
       const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
       const simplifiedCart = cart.map(item => ({
         id: item.id,
@@ -206,9 +211,9 @@
         cart: simplifiedCart,
         total
       };
-    
+
       if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-        Telegram.WebApp.sendData(JSON.stringify(order));
+        Telegram.WebApp.sendData("order:" + JSON.stringify(order));
       } else {
         alert('Ошибка отправки заказа через Telegram');
         console.log('Order data:', order);
