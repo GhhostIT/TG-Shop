@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Premium Work Shop</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -460,15 +460,33 @@
       color: var(--primary);
     }
 
-    /* Анимация для модалок */
-    @keyframes modalFadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+    /* Плавающая кнопка корзины */
+    .floating-cart-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      background-color: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 0 20px var(--primary-light);
+      z-index: 999;
+      transition: all 0.3s ease;
     }
 
-    @keyframes modalSlideIn {
-      from { transform: translateY(20%); }
-      to { transform: translateY(0); }
+    .floating-cart-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .floating-cart-btn .badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background-color: var(--error);
     }
   </style>
 </head>
@@ -514,7 +532,12 @@
         <i class="fas fa-times"></i>
       </button>
       <div class="container">
-        <h2><i class="fas fa-list"></i> Категории товаров</h2>
+        <div class="section-title">
+          <h2><i class="fas fa-list"></i> Категории товаров</h2>
+          <button class="button" onclick="openCartModal()">
+            <i class="fas fa-shopping-cart"></i> Корзина <span id="cartBadge" class="badge" style="display: none;">0</span>
+          </button>
+        </div>
         <div class="categories-grid" id="categoriesContainer">
           <!-- Категории будут загружены через JS -->
         </div>
@@ -605,6 +628,12 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Плавающая кнопка корзины -->
+  <div class="floating-cart-btn" onclick="openCartModal()">
+    <i class="fas fa-shopping-cart" style="font-size: 1.5rem; color: white;"></i>
+    <span id="floatingCartBadge" class="badge" style="display: none;">0</span>
   </div>
 
   <!-- Уведомление -->
@@ -927,14 +956,16 @@
     function updateCartBadge() {
       const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
       const badge = document.getElementById('cartBadge');
+      const floatingBadge = document.getElementById('floatingCartBadge');
       
       if (badge) {
-        if (totalItems > 0) {
-          badge.textContent = totalItems;
-          badge.style.display = 'inline-flex';
-        } else {
-          badge.style.display = 'none';
-        }
+        badge.textContent = totalItems;
+        badge.style.display = totalItems > 0 ? 'inline-flex' : 'none';
+      }
+      
+      if (floatingBadge) {
+        floatingBadge.textContent = totalItems;
+        floatingBadge.style.display = totalItems > 0 ? 'inline-flex' : 'none';
       }
     }
     
